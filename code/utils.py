@@ -27,7 +27,8 @@ def benchCode(benchFunc, *args):
     """
     gc.disable()
     start = time.perf_counter()
-    temp = [benchFunc(*args) for i in range(3)]
+    for i in range(3):
+        temp = benchFunc(*args)
     time1 = (time.perf_counter() - start) / 3
     gc.enable()
     del temp
