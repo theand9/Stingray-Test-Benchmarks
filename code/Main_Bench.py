@@ -8,10 +8,14 @@ from Bench_Pspec import PspecMain
 from utils import CSVPlotter
 
 if __name__ == "__main__":
-    choice = int(input("\n1. Benchmark stingray \n2. Plot function times \nEnter your choice: "))
+    choice = int(
+        input(
+            "\n1. Benchmark stingray \n2. Plot function times \nEnter your choice: "
+        ))
 
     if choice == 1:
-        bench_msg = input("\nEnter the changes made, if none please enter None: ")
+        bench_msg = input(
+            "\nEnter the changes made, if none please enter None: ")
 
         LCMain(bench_msg)
 
@@ -22,6 +26,8 @@ if __name__ == "__main__":
         AvgPspecMain(bench_msg)
 
     elif choice == 2:
-        class_name = input("\nEnter the class whose function you wish to benchmark: ")
+        class_name = input(
+            "\nEnter the class whose function you wish to benchmark: ")
         file_name = input("Enter the function you wish to benchmark: ")
-        CSVPlotter(os.path.abspath(os.getcwd()), class_name, file_name)
+        CSVPlotter(os.path.abspath(os.path.join(os.getcwd(), os.pardir)),
+                   class_name, file_name)

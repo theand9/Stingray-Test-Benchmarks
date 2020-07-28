@@ -3,8 +3,8 @@ import gc
 import os
 import time
 
-from memory_profiler import memory_usage
 import plotly.graph_objects as px
+from memory_profiler import memory_usage
 from plotly.subplots import make_subplots
 
 
@@ -37,12 +37,15 @@ def benchCode(benchFunc, *args):
     return time1, sum(mem1) / len(mem1)
 
 
-def CSVWriter(func_dict, wall_time, mem_use):
+def CSVWriter(path, func_dict, wall_time, mem_use):
     """
     Write the benchmark results to a CSV file.
 
     Parameters
     ----------
+    path : string
+        Path to the data folder for saving results.
+
     func_dict : dict
         Dictionary of all the functions to be saved.
 
@@ -54,9 +57,10 @@ def CSVWriter(func_dict, wall_time, mem_use):
     """
     for class_name, funcs in func_dict.items():
         for i, func_name in enumerate(funcs):
-            if not os.path.isfile(f'data/{class_name}/{func_name}.csv'):
-                os.makedirs(f'data/{class_name}', exist_ok=True)
-                with open(f'data/{class_name}/{func_name}.csv', 'w+') as fptr:
+            if not os.path.isfile(f'{path}/{class_name}/{func_name}.csv'):
+                os.makedirs(f'{path}/{class_name}', exist_ok=True)
+                with open(f'{path}/{class_name}/{func_name}.csv',
+                          'w+') as fptr:
                     writer = csv.writer(fptr)
                     writer.writerow([
                         'Commit_Tstamp', 'Commit_Msg', '100K', '1M', '10M',
@@ -67,7 +71,7 @@ def CSVWriter(func_dict, wall_time, mem_use):
 
         # AvgCspecMain(bench_msg)
         # AvgPspecMain(bench_msg)
-            with open(f'data/{class_name}/{func_name}.csv', 'a+') as fptr:
+            with open(f'{path}/{class_name}/{func_name}.csv', 'a+') as fptr:
                 writer = csv.writer(fptr)
 
                 if func_name[0] == 'T':
@@ -92,17 +96,22 @@ def CSVPlotter(path, class_name, func_name):
     func_name : string
         Name of the file/function to be plotted.
     """
+    flag = 0
+
     graph_val = ['100K', '1M', '10M', '100M', '1B']
     for root, dirs, files in os.walk(path):
         if root[root.rfind('/', 0, len(root)) + 1:len(root)] == class_name \
            and f'Time_{func_name}.csv' in files:
+            flag = 1
+
             T_file = os.path.join(root, f'Time_{func_name}.csv')
             M_file = os.path.join(root, f'Mem_{func_name}.csv')
 
-    fig = make_subplots(rows=1,
-                        cols=2,
-                        subplot_titles=("Execution Time(in s)(log)",
-                                        "Memory Use(in MB)(log)"))
+    if flag == 0:
+        print("\nFunction does not exist. Run Benchmarks or Check the entered function name")
+        exit(0)
+
+    fig = make_subplots(rows=1, cols=2, subplot_titles=("Execution Time(in s)(log)", "Memory Use(in MB)(log)"))
 
     with open(T_file, 'r+') as T_ptr:
         reader = csv.reader(T_ptr)

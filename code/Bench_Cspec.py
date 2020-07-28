@@ -1,33 +1,38 @@
+import os
 import time
 import warnings
 from datetime import datetime
 
 import numpy as np
 
-from stingray import AveragedCrossspectrum, Lightcurve
+from stingray import Crossspectrum, Lightcurve
 from utils import CSVWriter, benchCode
 
 warnings.filterwarnings("ignore")
 
 
-def createAvgCspec(lc1, lc2, seg):
-    AveragedCrossspectrum(lc1, lc2, seg, silent=True)
+def createCspec(lc1, lc2):
+    Crossspectrum(lc1, lc2, dt=1.0)
 
 
-def coherAvgCspec(avg_Cspec):
-    avg_Cspec.coherence()
+def rebinCspec(cspec):
+    cspec.rebin(df=2.0)
 
 
-def TlagAvgCspec(avg_Cspec):
-    avg_Cspec.time_lag()
+def coherCspec(cspec):
+    cspec.coherence()
 
 
-def AvgCspecMain(bench_msg):
+def TlagCspec(cspec):
+    cspec.time_lag()
+
+
+def CspecMain(bench_msg):
     func_dict = {
-        'AveragedCrossspectrum': [
-            'Time_Init', 'Mem_Init', 'Time_Coher', 'Mem_Coher', 'Time_Tlag',
-            'Mem_Tlag'
-        ],
+        'Crossspectrum': [
+            'Time_Init', 'Mem_Init', 'Time_Rebin_Linear', 'Mem_Rebin_Linear',
+            'Time_Coherence', 'Mem_Coherence', 'Time_Tlag', 'Mem_Tlag'
+        ]
     }
 
     wall_time = [[
@@ -50,24 +55,30 @@ def AvgCspecMain(bench_msg):
                               dt=1.0,
                               skip_checks=True)
 
-        time1, mem1 = benchCode(createAvgCspec, lc, lc_other, 10000)
+        time1, mem1 = benchCode(createCspec, lc, lc_other)
         wall_time[num_func].append(time1)
         mem_use[num_func].append(mem1)
         num_func += 1
 
-        avg_cspec = AveragedCrossspectrum(lc, lc_other, 10000, silent=True)
+        cspec = Crossspectrum(lc, lc_other, dt=1.0)
 
-        time1, mem1 = benchCode(coherAvgCspec, avg_cspec)
+        time1, mem1 = benchCode(rebinCspec, cspec)
         wall_time[num_func].append(time1)
         mem_use[num_func].append(mem1)
         num_func += 1
 
-        time1, mem1 = benchCode(TlagAvgCspec, avg_cspec)
+        time1, mem1 = benchCode(coherCspec, cspec)
         wall_time[num_func].append(time1)
         mem_use[num_func].append(mem1)
         num_func += 1
 
-        del avg_cspec, lc, lc_other, times, counts, time1, mem1
+        time1, mem1 = benchCode(TlagCspec, cspec)
+        wall_time[num_func].append(time1)
+        mem_use[num_func].append(mem1)
+        num_func += 1
 
-    CSVWriter(func_dict, wall_time, mem_use)
+        del times, counts, lc, lc_other, cspec, time1, mem1
+
+    CSVWriter(f'{os.path.abspath(os.path.join(os.getcwd(), os.pardir))}/data',
+              func_dict, wall_time, mem_use)
     del func_dict, wall_time, mem_use

@@ -1,36 +1,33 @@
+import os
 import time
 import warnings
 from datetime import datetime
 
 import numpy as np
 
-from stingray import Lightcurve, Powerspectrum
+from stingray import AveragedCrossspectrum, Lightcurve
 from utils import CSVWriter, benchCode
 
 warnings.filterwarnings("ignore")
 
 
-def createPspec(lc):
-    Powerspectrum(lc)
+def createAvgCspec(lc1, lc2, seg):
+    AveragedCrossspectrum(lc1, lc2, seg, silent=True)
 
 
-def rebinPspec(pspec):
-    pspec.rebin(df=0.01)
+def coherAvgCspec(avg_Cspec):
+    avg_Cspec.coherence()
 
 
-def classSign(pspec):
-    pspec.classical_significances()
+def TlagAvgCspec(avg_Cspec):
+    avg_Cspec.time_lag()
 
 
-def pspecRMS(pspec):
-    pspec.compute_rms(min_freq=min(pspec.freq) * 10,
-                      max_freq=max(pspec.freq) / 1.5)
-
-
-def PspecMain(bench_msg):
+def AvgCspecMain(bench_msg):
     func_dict = {
-        'Powerspectrum': [
-            'Time_Init', 'Mem_Init', 'Time_Rebin', 'Mem_Rebin', 'Time_RMS', 'Mem_RMS', 'Time_Class_Sign', 'Mem_Class_Sign'
+        'AveragedCrossspectrum': [
+            'Time_Init', 'Mem_Init', 'Time_Coher', 'Mem_Coher', 'Time_Tlag',
+            'Mem_Tlag'
         ],
     }
 
@@ -49,31 +46,31 @@ def PspecMain(bench_msg):
         counts = np.random.rand(size) * 100
 
         lc = Lightcurve(times, counts, dt=1.0, skip_checks=True)
+        lc_other = Lightcurve(times,
+                              counts * np.random.rand(size),
+                              dt=1.0,
+                              skip_checks=True)
 
-        time1, mem1 = benchCode(createPspec, lc)
+        time1, mem1 = benchCode(createAvgCspec, lc, lc_other, 10000)
         wall_time[num_func].append(time1)
         mem_use[num_func].append(mem1)
         num_func += 1
 
-        pspec = Powerspectrum(lc)
+        avg_cspec = AveragedCrossspectrum(lc, lc_other, 10000, silent=True)
 
-        time1, mem1 = benchCode(rebinPspec, pspec)
+        time1, mem1 = benchCode(coherAvgCspec, avg_cspec)
         wall_time[num_func].append(time1)
         mem_use[num_func].append(mem1)
         num_func += 1
 
-        time1, mem1 = benchCode(pspecRMS, pspec)
+        time1, mem1 = benchCode(TlagAvgCspec, avg_cspec)
         wall_time[num_func].append(time1)
         mem_use[num_func].append(mem1)
         num_func += 1
 
-        temp_pspec = Powerspectrum(lc, norm='leahy')
-        time1, mem1 = benchCode(classSign, temp_pspec)
-        wall_time[num_func].append(time1)
-        mem_use[num_func].append(mem1)
-        num_func += 1
+        del avg_cspec, lc, lc_other, times, counts, time1, mem1
 
-        del pspec, temp_pspec, lc, times, counts, time1, mem1
+    CSVWriter(f'{os.path.abspath(os.path.join(os.getcwd(), os.pardir))}/data',
+              func_dict, wall_time, mem_use)
 
-    CSVWriter(func_dict, wall_time, mem_use)
     del func_dict, wall_time, mem_use

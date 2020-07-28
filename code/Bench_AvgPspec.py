@@ -1,4 +1,4 @@
-
+import os
 import time
 import warnings
 from datetime import datetime
@@ -41,5 +41,7 @@ def AvgPspecMain(bench_msg):
 
         del lc, times, counts, time1, mem1
 
-    CSVWriter(func_dict, wall_time, mem_use)
+    CSVWriter(f'{os.path.abspath(os.path.join(os.getcwd(), os.pardir))}/data',
+              func_dict, wall_time, mem_use)
+
     del func_dict, wall_time, mem_use

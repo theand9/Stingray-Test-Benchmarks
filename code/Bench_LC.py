@@ -1,3 +1,4 @@
+import os
 import time
 import warnings
 from datetime import datetime
@@ -96,7 +97,8 @@ def LCMain(bench_msg):
             'Time_Sort_Counts', 'Mem_Sort_Counts', 'Time_Analyze_Chunks',
             'Mem_Analyze_Chunks', 'Time_Est_Chunk_Len', 'Mem_Est_Chunk_Len',
             'Time_JoinLC', 'Mem_JoinLC'
-        ]}
+        ]
+    }
 
     wall_time = [[
         f'{datetime.utcfromtimestamp(int(time.time())).strftime("%Y-%m-%d %H:%M:%S")}',
@@ -221,5 +223,7 @@ def LCMain(bench_msg):
 
         del lc, lc_other, time1, mem1, times, counts
 
-    CSVWriter(func_dict, wall_time, mem_use)
+    CSVWriter(f'{os.path.abspath(os.path.join(os.getcwd(), os.pardir))}/data',
+              func_dict, wall_time, mem_use)
+
     del func_dict, wall_time, mem_use
