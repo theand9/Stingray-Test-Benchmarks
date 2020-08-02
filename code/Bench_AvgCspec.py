@@ -40,7 +40,7 @@ def AvgCspecMain(bench_msg):
         f'{bench_msg}',
     ] for i in range(int(sum([len(x) for x in func_dict.values()]) / 2))]
 
-    for size in [10**i for i in range(5, 9)]:
+    for size in [10**i for i in range(5, 8)]:
         num_func = 0
         times = np.arange(size)
         counts = np.random.rand(size) * 100

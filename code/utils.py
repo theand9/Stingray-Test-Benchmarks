@@ -68,10 +68,6 @@ def CSVWriter(path, func_dict, wall_time, mem_use):
                         '100M', '1B'
                     ])
 
-        # PspecMain(bench_msg)
-
-        # AvgCspecMain(bench_msg)
-        # AvgPspecMain(bench_msg)
             with open(f'{path}/{class_name}/{func_name}.csv', 'a+') as fptr:
                 writer = csv.writer(fptr)
 
@@ -109,17 +105,26 @@ def CSVPlotter(path, class_name, func_name):
             M_file = os.path.join(root, f'Mem_{func_name}.csv')
 
     if flag == 0:
-        print("\nFunction does not exist. Run Benchmarks or Check the entered function name")
+        print(
+            "\nFunction does not exist. Run Benchmarks or Check the entered function name"
+        )
         exit(0)
 
-    fig = make_subplots(rows=1, cols=2, subplot_titles=("Execution Time(in s)(log)", "Memory Use(in MB)(log)"))
+    fig = make_subplots(rows=1,
+                        cols=2,
+                        subplot_titles=("Execution Time(in s)(log)",
+                                        "Memory Use(in MB)(log)"))
 
     with open(T_file, 'r+') as T_ptr:
         reader = csv.reader(T_ptr)
 
         for count, row in enumerate(reader):
             if count != 0 and row:
-                fig.add_trace(px.Scatter(x=graph_val, y=row[2:], name=f'{row[0]}-{row[1]}'), row=1, col=1)
+                fig.add_trace(px.Scatter(x=graph_val,
+                                         y=row[2:],
+                                         name=f'{row[0]}-{row[1]}'),
+                              row=1,
+                              col=1)
                 fig.update_yaxes(type="log", row=1, col=1)
 
     with open(M_file, 'r+') as M_ptr:
@@ -127,7 +132,11 @@ def CSVPlotter(path, class_name, func_name):
 
         for count, row in enumerate(reader):
             if count != 0 and row:
-                fig.add_trace(px.Scatter(x=graph_val, y=row[2:], name=f'{row[0]}-{row[1]}'), row=1, col=2)
+                fig.add_trace(px.Scatter(x=graph_val,
+                                         y=row[2:],
+                                         name=f'{row[0]}-{row[1]}'),
+                              row=1,
+                              col=2)
                 fig.update_yaxes(type="log", row=1, col=2)
 
     fig.update_layout(title_text=f"Benchmark for {func_name}")
